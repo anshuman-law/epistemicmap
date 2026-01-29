@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Epistemic Mapping Dashboard</title>
+    <!-- Load Plotly.js -->
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <style>
+        :root {
+            --primary-bg: #f8f9fa;
+            --card-bg: #ffffff;
+            --cci-color: #1f77b4;
+            --nclat-color: #d62728;
+            --text-main: #333;
+            --text-muted: #666;
+            --border-color: #e0e0e0;
+            --accent-color: #6366f1;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: var(--primary-bg);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            flex-grow: 1;
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            border: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #2c3e50;
+        }
+
+        #plotly-graph {
+            width: 100%;
+            height: 500px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+
+        .search-box {
+            flex-grow: 1;
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .search-box:focus {
+            border-color: var(--accent-color);
+        }
+
+        .btn-toggle {
+            padding: 10px 16px;
+            background-color: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .btn-toggle:hover {
+            background-color: #f1f5f9;
+            border-color: var(--accent-color);
+        }
+
+        .btn-toggle.active {
+            background-color: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
+        }
+
+        .table-wrapper {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 14px;
+        }
+
+        th {
+            position: sticky;
+            top: 0;
+            background-color: #f2f2f2;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            z-index: 10;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        tr {
+            transition: background-color 0.15s;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr.highlight {
+            background-color: #e3f2fd !important;
+        }
+
+        tr:hover {
+            background-color: #f8f9fa;
+            cursor: pointer;
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: white;
+        }
+
+        .badge-cci { background-color: var(--cci-color); }
+        .badge-nclat { background-color: var(--nclat-color); }
+
+        footer {
+            margin-top: 40px;
+            padding: 20px 0;
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            font-style: italic;
+            border-top: 1px solid var(--border-color);
+            width: 100%;
+            max-width: 900px;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #bbb; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="card" id="graph-card">
+        <h1>CCI-NCLAT Biaxial Epistemic Mapping</h1>
+        <div id="plotly-graph"></div>
+    </div>
+
+    <div class="card" id="table-card">
+        <div class="controls">
+            <input type="text" id="searchInput" class="search-box" placeholder="Search case names, forums, or coordinates..." onkeyup="filterTable()">
+            <button id="toggleShiftBtn" class="btn-toggle" onclick="toggleShiftLines()">
+                Show Epistemic Shift
+            </button>
+        </div>
+        <div class="table-wrapper">
+            <table id="caseTable">
+                <thead>
+                    <tr>
+                        <th>Label</th>
+                        <th>Forum</th>
+                        <th>X</th>
+                        <th>Y</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <footer>
+        A project under the Network for Institutional and Systems Transformation Fellowship
+    </footer>
+</div>
+
+<script>
+    // Data input
+    const caseData = [
+        {label: "Case A", x: 2, y: 3, forum: "CCI"},
+        {label: "Case B", x: 2, y: 3, forum: "NCLAT"},
+        {label: "Case C", x: 5.5, y: 8, forum: "CCI"},
+        {label: "Case C", x: 7, y: 4.5, forum: "NCLAT"},
+        {label: "Case E", x: 8, y: 8.5, forum: "CCI"},
+        {label: "Case E", x: 4, y: 2, forum: "NCLAT"},
+        {label: "Case G", x: 7, y: 4.5, forum: "CCI"} 
+    ];
+
+    const forumConfig = {
+        'CCI': { color: '#1f77b4', label: 'CCI' },
+        'NCLAT': { color: '#d62728', label: 'NCLAT' }
+    };
+
+    const forums = {
+        'CCI': { x: [], y: [], jx: [], jy: [], labels: [], color: forumConfig['CCI'].color },
+        'NCLAT': { x: [], y: [], jx: [], jy: [], labels: [], color: forumConfig['NCLAT'].color }
+    };
+
+    let seen = {};
+    let labelPoints = {}; // To store jittered coords for connecting lines
+
+    // Process data and build table
+    caseData.forEach((d, index) => {
+        let key = `${d.x},${d.y}`;
+        let jitterAmount = (seen[key] || 0) * 0.15;
+        seen[key] = (seen[key] || 0) + 1;
+
+        const jx = d.x + jitterAmount;
+        const jy = d.y + jitterAmount;
+
+        forums[d.forum].labels.push(d.label);
+        forums[d.forum].x.push(d.x);
+        forums[d.forum].y.push(d.y);
+        forums[d.forum].jx.push(jx);
+        forums[d.forum].jy.push(jy);
+
+        // Store for shift lines
+        if (!labelPoints[d.label]) labelPoints[d.label] = [];
+        labelPoints[d.label].push({ x: jx, y: jy });
+
+        // Build Table Row
+        const row = document.createElement('tr');
+        row.id = `row-${d.forum}-${d.label.replace(/\s+/g, '-')}`;
+        row.innerHTML = `
+            <td><strong>${d.label}</strong></td>
+            <td><span class="badge badge-${d.forum.toLowerCase()}">${d.forum}</span></td>
+            <td>${d.x}</td>
+            <td>${d.y}</td>
+        `;
+        row.onclick = () => highlightOnGraph(d.forum, d.label);
+        document.getElementById('tableBody').appendChild(row);
+    });
+
+    // Create Epistemic Shift Traces (Dotted Lines)
+    const shiftTraces = [];
+    Object.keys(labelPoints).forEach(label => {
+        const points = labelPoints[label];
+        if (points.length > 1) {
+            // Draw lines between sequential appearances of the same label
+            for (let i = 0; i < points.length - 1; i++) {
+                shiftTraces.push({
+                    x: [points[i].x, points[i+1].x],
+                    y: [points[i].y, points[i+1].y],
+                    mode: 'lines',
+                    line: {
+                        color: '#94a3b8',
+                        width: 1.5,
+                        dash: 'dot'
+                    },
+                    hoverinfo: 'skip',
+                    showlegend: false,
+                    visible: false, // Hidden by default
+                    name: 'shift-line'
+                });
+            }
+        }
+    });
+
+    // Create Main Marker Traces
+    const forumTraces = Object.keys(forums).map(f => ({
+        x: forums[f].jx,
+        y: forums[f].jy,
+        mode: 'markers',
+        name: f,
+        text: forums[f].labels,
+        customdata: forums[f].labels.map((l, i) => [forums[f].x[i], forums[f].y[i]]),
+        marker: { 
+            size: 14, 
+            color: forums[f].color, 
+            line: { width: 1.5, color: 'rgba(255,255,255,0.8)' },
+            opacity: 0.9
+        },
+        hovertemplate: 
+            `<b>%{text}</b><br>` +
+            `Forum: ${f}<br>` +
+            `Actual: (%{customdata[0]}, %{customdata[1]})` +
+            `<extra></extra>`
+    }));
+
+    const allTraces = [...shiftTraces, ...forumTraces];
+
+    const layout = {
+        hovermode: 'closest',
+        margin: { t: 30, b: 40, l: 60, r: 30 },
+        xaxis: { 
+            title: 'Quantitative Reasoning Score', 
+            range: [0, 11], 
+            dtick: 1, 
+            gridcolor: '#f1f5f9',
+            zerolinecolor: '#cbd5e1'
+        },
+        yaxis: { 
+            title: 'Qualitative Reasoning Score', 
+            range: [0, 11], 
+            dtick: 1, 
+            gridcolor: '#f1f5f9',
+            zerolinecolor: '#cbd5e1'
+        },
+        plot_bgcolor: 'white',
+        paper_bgcolor: 'white',
+        legend: {
+            orientation: 'h',
+            y: -0.2
+        }
+    };
+
+    const config = { responsive: true, displayModeBar: false };
+
+    Plotly.newPlot('plotly-graph', allTraces, layout, config);
+
+    // Toggle logic for Shift Lines
+    let shiftVisible = false;
+    function toggleShiftLines() {
+        shiftVisible = !shiftVisible;
+        const btn = document.getElementById('toggleShiftBtn');
+        btn.classList.toggle('active', shiftVisible);
+        
+        // Find indices of shift traces
+        const update = { visible: shiftVisible };
+        const indices = allTraces
+            .map((t, i) => t.name === 'shift-line' ? i : -1)
+            .filter(i => i !== -1);
+            
+        Plotly.restyle('plotly-graph', update, indices);
+    }
+
+    // Interaction: Table -> Graph
+    function highlightOnGraph(forum, label) {
+        const traceIndex = allTraces.findIndex(t => t.name === forum);
+        const pointIndex = forums[forum].labels.indexOf(label);
+        
+        Plotly.Fx.hover('plotly-graph', [
+            { curveNumber: traceIndex, pointNumber: pointIndex }
+        ]);
+    }
+
+    // Interaction: Graph -> Table (on hover)
+    const graphElement = document.getElementById('plotly-graph');
+    graphElement.on('plotly_hover', function(data) {
+        const trace = data.points[0].fullData;
+        if (trace.name === 'shift-line') return; // Ignore hover on lines
+
+        const pn = data.points[0].pointNumber;
+        const forumName = trace.name;
+        const label = forums[forumName].labels[pn];
+        
+        const rowId = `row-${forumName}-${label.replace(/\s+/g, '-')}`;
+        const row = document.getElementById(rowId);
+        
+        document.querySelectorAll('tr').forEach(r => r.classList.remove('highlight'));
+        if (row) {
+            row.classList.add('highlight');
+            row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    });
+
+    graphElement.on('plotly_unhover', function() {
+        document.querySelectorAll('tr').forEach(r => r.classList.remove('highlight'));
+    });
+
+    function filterTable() {
+        const input = document.getElementById("searchInput").value.toUpperCase();
+        const rows = document.getElementById("tableBody").getElementsByTagName("tr");
+        for (let i = 0; i < rows.length; i++) {
+            const text = rows[i].innerText.toUpperCase();
+            rows[i].style.display = text.includes(input) ? "" : "none";
+        }
+    }
+</script>
+
+</body>
+</html>

@@ -384,8 +384,29 @@
             `<extra></extra>`
     }));
 
-    const allTraces = [...shiftTraces, ...forumTraces];
+    const densityTraces = Object.keys(forums).map(f => ({
+    x: forums[f].x,
+    y: forums[f].y,
+    type: 'histogram2dcontour',
+    name: `${f} density`,
+    colorscale: f === 'CCI' 
+        ? [[0, 'rgba(31,119,180,0)'], [1, 'rgba(31,119,180,0.45)']]
+        : [[0, 'rgba(214,39,40,0)'], [1, 'rgba(214,39,40,0.45)']],
+    showscale: false,
+    showlegend: false,
+    hoverinfo: 'skip',
+    contours: {
+        coloring: 'fill',
+        showlines: false,
+    },
+    ncontours: 8,
+    histnorm: 'probability density',
+    nbinsx: 12,
+    nbinsy: 12,
+    }));
 
+    const allTraces = [...shiftTraces, ...densityTraces, ...forumTraces];
+    
     const layout = {
         hovermode: 'closest',
         margin: { t: 30, b: 40, l: 60, r: 30 },

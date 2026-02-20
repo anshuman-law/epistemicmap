@@ -197,6 +197,9 @@
             <button id="toggleShiftBtn" class="btn-toggle" onclick="toggleShiftLines()">
                 Show Epistemic Shift
             </button>
+            <button id="toggleDensityBtn" class="btn-toggle active" onclick="toggleDensity()">
+                Show Reasoning Clouds
+            </button>
         </div>
         <div class="table-wrapper">
             <table id="caseTable">
@@ -492,6 +495,22 @@
         for (let i = 0; i < rows.length; i++) {
             const text = rows[i].innerText.toUpperCase();
             rows[i].style.display = text.includes(input) ? "" : "none";
+        }
+
+    let densityVisible = true; // Set to true since they are visible by default in your array
+
+    function toggleDensity() {
+        densityVisible = !densityVisible;
+        const btn = document.getElementById('toggleDensityBtn');
+        btn.classList.toggle('active', densityVisible);
+    
+        // Find indices of traces that are density clouds
+        const indices = allTraces
+            .map((t, i) => (t.name && t.name.includes('density')) ? i : -1)
+            .filter(i => i !== -1);
+    
+        const update = { visible: densityVisible };
+        Plotly.restyle('plotly-graph', update, indices);
         }
     }
 </script>

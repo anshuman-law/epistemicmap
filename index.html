@@ -309,7 +309,7 @@
     // Process data and build table
     caseData.forEach((d, index) => {
         let key = `${d.x},${d.y}`;
-        let jitterAmount = (seen[key] || 0) * 0.15;
+        let jitterAmount = (seen[key] || 0) * 0.05;
         seen[key] = (seen[key] || 0) + 1;
 
         const jx = d.x + jitterAmount;

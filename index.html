@@ -497,7 +497,7 @@
             const text = rows[i].innerText.toUpperCase();
             rows[i].style.display = text.includes(input) ? "" : "none";
         }
-        }
+    }
 
     let densityVisible = false;
 
@@ -514,7 +514,6 @@
         const update = { visible: densityVisible };
         Plotly.restyle('plotly-graph', update, indices);
         }
-    }
 </script>
 
 </body>

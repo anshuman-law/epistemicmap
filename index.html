@@ -197,7 +197,7 @@
             <button id="toggleShiftBtn" class="btn-toggle" onclick="toggleShiftLines()">
                 Show Epistemic Shift
             </button>
-            <button id="toggleDensityBtn" class="btn-toggle active" onclick="toggleDensity()">
+            <button id="toggleDensityBtn" class="btn-toggle" onclick="toggleDensity()">
                 Show Reasoning Clouds
             </button>
         </div>
@@ -392,6 +392,7 @@
     y: forums[f].y,
     type: 'histogram2dcontour',
     name: `${f} density`,
+    visible: false,
     colorscale: f === 'CCI' 
         ? [[0, 'rgba(31,119,180,0)'], [1, 'rgba(31,119,180,0.45)']]
         : [[0, 'rgba(214,39,40,0)'], [1, 'rgba(214,39,40,0.45)']],
